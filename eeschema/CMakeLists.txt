@@ -448,6 +448,7 @@ set( EESCHEMA_SRCS
     connectivity/conn_frame.cpp
     connectivity/conn_inputs.cpp
     connectivity/conn_islands.cpp
+    copilot/sch_copilot_toolbox.cpp
     cross-probing.cpp
     sch_design_block_utils.cpp
     eeschema_config.cpp

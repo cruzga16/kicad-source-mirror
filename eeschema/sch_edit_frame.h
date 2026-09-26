@@ -58,6 +58,8 @@ class SCHEMATIC;
 class SCH_COMMIT;
 class SCH_DESIGN_BLOCK_PANE;
 class PANEL_REMOTE_SYMBOL;
+class COPILOT_PANEL;
+class SCH_COPILOT_TOOLBOX;
 class DIALOG_BOOK_REPORTER;
 class DIALOG_ERC;
 class DIALOG_SYMBOL_FIELDS_TABLE;
@@ -899,6 +901,13 @@ public:
 
     void ToggleRemoteSymbolPanel();
 
+    static const wxString CopilotPaneName() { return wxT( "Copilot" ); }
+
+    /// Show/hide the dockable Copilot (AI assistant) pane.
+    void ToggleCopilotPanel();
+
+    COPILOT_PANEL* GetCopilotPanel() const { return m_copilotPanel; }
+
 
     DIALOG_BOOK_REPORTER* GetSymbolDiffDialog();
 
@@ -1170,6 +1179,9 @@ private:
     std::vector<LIB_ID>         m_designBlockHistoryList;
     SCH_DESIGN_BLOCK_PANE*      m_designBlocksPane;
     PANEL_REMOTE_SYMBOL*        m_remoteSymbolPane;
+
+    std::unique_ptr<SCH_COPILOT_TOOLBOX> m_copilotToolbox;  ///< Schematic access for the Copilot.
+    COPILOT_PANEL*                       m_copilotPanel = nullptr;
 
     wxChoice*                   m_currentVariantCtrl;
 

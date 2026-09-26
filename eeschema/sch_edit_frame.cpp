@@ -32,6 +32,8 @@
 #include <dialogs/dialog_change_symbols.h>
 #include <widgets/sch_design_block_pane.h>
 #include <widgets/panel_remote_symbol.h>
+#include <widgets/copilot_panel.h>
+#include <copilot/sch_copilot_toolbox.h>
 #include <wx/srchctrl.h>
 #include <mail_type.h>
 #include <wx/clntdata.h>
@@ -235,6 +237,9 @@ SCH_EDIT_FRAME::SCH_EDIT_FRAME( KIWAY* aKiway, wxWindow* aParent ) :
     m_selectionFilterPanel = new PANEL_SCH_SELECTION_FILTER( this );
     m_designBlocksPane = new SCH_DESIGN_BLOCK_PANE( this, nullptr, m_designBlockHistoryList );
 
+    m_copilotToolbox = std::make_unique<SCH_COPILOT_TOOLBOX>( this );
+    m_copilotPanel = new COPILOT_PANEL( this, m_copilotToolbox.get() );
+
     m_auimgr.SetManagedWindow( this );
 
     CreateInfoBar();
@@ -293,6 +298,16 @@ SCH_EDIT_FRAME::SCH_EDIT_FRAME( KIWAY* aKiway, wxWindow* aParent ) :
                       .CloseButton( true )
                       .DestroyOnClose( false )
                       .Show( m_show_search ) );
+
+    m_auimgr.AddPane( m_copilotPanel, EDA_PANE().Name( CopilotPaneName() )
+                      .Right().Layer( 5 ).Row( 1 )
+                      .Caption( _( "Copilot" ) ).PaneBorder( false )
+                      .MinSize( FromDIP( wxSize( 260, 200 ) ) )
+                      .BestSize( FromDIP( wxSize( 380, 500 ) ) )
+                      .FloatingSize( FromDIP( wxSize( 420, 600 ) ) )
+                      .DestroyOnClose( false )
+                      .CloseButton( true )
+                      .Hide() );
 
     RestoreAuiLayout();
     FinishAUIInitialization();
@@ -593,6 +608,10 @@ SCH_EDIT_FRAME::~SCH_EDIT_FRAME()
 {
     m_connectivitySubscription.Reset();
 
+    // The Copilot pane outlives our members during window teardown.
+    if( m_copilotPanel )
+        m_copilotPanel->DetachToolbox();
+
     // Ensure that teardowns without doCloseWindow are fully unregistered
     if( m_schematic )
         Kiway().LocalHistory().UnregisterSaver( m_schematic );
@@ -830,6 +849,14 @@ void SCH_EDIT_FRAME::setupUIConditions()
     mgr->SetConditions( ACTIONS::showProperties,           CHECK( propertiesCond ) );
     mgr->SetConditions( SCH_ACTIONS::showDesignBlockPanel, CHECK( designBlockCond ) );
     mgr->SetConditions( SCH_ACTIONS::showRemoteSymbolPanel, CHECK( remoteSymbolCond ) );
+
+    auto copilotCond =
+            [this]( const SELECTION& )
+            {
+                return m_auimgr.GetPane( CopilotPaneName() ).IsShown();
+            };
+
+    mgr->SetConditions( SCH_ACTIONS::showCopilot, CHECK( copilotCond ) );
     mgr->SetConditions( ACTIONS::toggleGrid,               CHECK( cond.GridVisible() ) );
     mgr->SetConditions( ACTIONS::toggleGridOverrides,      CHECK( cond.GridOverrides() ) );
 
@@ -1165,6 +1192,14 @@ void SCH_EDIT_FRAME::HardRedraw()
 
 bool SCH_EDIT_FRAME::canCloseWindow( wxCloseEvent& aEvent )
 {
+    // The Copilot may be running one of this window's tools (e.g. the autorouter) and pumping
+    // events while it waits; destroying the window now would pull the design out from under it.
+    if( m_copilotToolbox && m_copilotToolbox->IsExecuting() && aEvent.CanVeto() )
+    {
+        wxBell();
+        return false;
+    }
+
     // Exit interactive editing
     // Note this this will commit *some* pending changes.  For instance, the SCH_POINT_EDITOR
     // will cancel any drag currently in progress, but commit all changes from previous drags.
@@ -3209,6 +3244,21 @@ void SCH_EDIT_FRAME::ToggleLibraryTree()
 
         m_auimgr.Update();
     }
+}
+
+
+void SCH_EDIT_FRAME::ToggleCopilotPanel()
+{
+    wxAuiPaneInfo& pane = m_auimgr.GetPane( CopilotPaneName() );
+
+    if( !pane.IsOk() )
+        return;
+
+    pane.Show( !pane.IsShown() );
+    m_auimgr.Update();
+
+    if( pane.IsShown() && m_copilotPanel )
+        m_copilotPanel->FocusInput();
 }
 
 

@@ -34,6 +34,7 @@
 #include <connectivity/conn_netchain_manager.h>
 #include <sch_netchain.h>
 #include <sch_sheet.h>
+#include <copilot/sch_copilot_toolbox.h>
 #include <sch_symbol.h>
 #include <sch_reference_list.h>
 #include <string_utils.h>
@@ -453,6 +454,12 @@ void SCH_EDIT_FRAME::KiwayMailIn( KIWAY_MAIL_EVENT& mail )
 
     switch( mail.Command() )
     {
+    case MAIL_COPILOT:
+        if( m_copilotToolbox )
+            payload = m_copilotToolbox->HandleMail( payload );
+
+        break;
+
     case MAIL_ADD_LOCAL_LIB:
     {
         std::stringstream ss( payload );

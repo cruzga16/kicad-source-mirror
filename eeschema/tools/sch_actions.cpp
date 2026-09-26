@@ -142,6 +142,14 @@ TOOL_ACTION SCH_ACTIONS::showRemoteSymbolPanel( TOOL_ACTION_ARGS()
         .Tooltip( _( "Show/hide the remote symbol panel" ) )
         .Icon( BITMAPS::library_browser ) );
 
+TOOL_ACTION SCH_ACTIONS::showCopilot( TOOL_ACTION_ARGS()
+        .Name( "eeschema.EditorControl.showCopilot" )
+        .Scope( AS_GLOBAL )
+        .FriendlyName( _( "Copilot" ) )
+        .Tooltip( _( "Show/hide the Copilot AI assistant panel" ) )
+        .ToolbarState( TOOLBAR_STATE::TOGGLE )
+        .Icon( BITMAPS::module_wizard ) );
+
 TOOL_ACTION SCH_ACTIONS::saveSheetAsDesignBlock( TOOL_ACTION_ARGS()
         .Name( "eeschema.SchDesignBlockControl.saveSheetAsDesignBlock" )
         .Scope( AS_GLOBAL )

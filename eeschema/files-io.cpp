@@ -54,6 +54,7 @@
 #include <sch_bus_entry.h>
 #include <sch_commit.h>
 #include <sch_edit_frame.h>
+#include <widgets/copilot_panel.h>
 #include <sch_draw_panel.h>
 #include <sch_io/kicad_legacy/sch_io_kicad_legacy.h>
 #include <sch_file_versions.h>
@@ -783,6 +784,10 @@ bool SCH_EDIT_FRAME::OpenProjectFiles( const std::vector<wxString>& aFileSet, in
                 if( m_netNavigator && m_netNavigatorStale )
                     RefreshNetNavigator();
             } );
+
+    // A conversation about a previous schematic would only confuse the assistant.
+    if( m_copilotPanel )
+        m_copilotPanel->ResetConversation();
 
     wxCommandEvent changedEvt( EDA_EVT_SCHEMATIC_CHANGED );
     ProcessEventLocally( changedEvt );

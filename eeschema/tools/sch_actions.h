@@ -221,6 +221,7 @@ public:
     // Design Block management
     static TOOL_ACTION showDesignBlockPanel;
     static TOOL_ACTION showRemoteSymbolPanel;
+    static TOOL_ACTION showCopilot;          ///< Toggle the docked Copilot (AI assistant) pane.
     static TOOL_ACTION saveSheetAsDesignBlock;
     static TOOL_ACTION saveSelectionAsDesignBlock;
     static TOOL_ACTION updateDesignBlockFromSheet;
