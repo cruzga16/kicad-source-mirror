@@ -63,6 +63,7 @@ COMMON_SETTINGS::COMMON_SETTINGS() :
         m_DoNotShowAgain(),
         m_PackageManager(),
         m_Api(),
+        m_Copilot(),
         m_FieldNameTemplates(),
         m_csInternals( std::make_unique<COMMON_SETTINGS_INTERNALS>() )
 {
@@ -512,6 +513,38 @@ COMMON_SETTINGS::COMMON_SETTINGS() :
 
     m_params.emplace_back( new PARAM<bool>( "api.enable_server",
             &m_Api.enable_server, false ) );
+
+    m_params.emplace_back( new PARAM<wxString>( "copilot.provider",
+            &m_Copilot.provider, wxS( "anthropic" ) ) );
+
+    auto addCopilotEndpoint =
+            [&]( const std::string& aKey, COPILOT_ENDPOINT& aEndpoint )
+            {
+                m_params.emplace_back( new PARAM<wxString>( "copilot." + aKey + ".base_url",
+                        &aEndpoint.base_url, wxS( "" ) ) );
+                m_params.emplace_back( new PARAM<wxString>( "copilot." + aKey + ".model",
+                        &aEndpoint.model, wxS( "" ) ) );
+            };
+
+    addCopilotEndpoint( "anthropic", m_Copilot.anthropic );
+    addCopilotEndpoint( "openai", m_Copilot.openai );
+    addCopilotEndpoint( "openai_compatible", m_Copilot.openai_compatible );
+    addCopilotEndpoint( "ollama", m_Copilot.ollama );
+
+    m_params.emplace_back( new PARAM<int>( "copilot.max_tokens",
+            &m_Copilot.max_tokens, 4096, 256, 128000 ) );
+
+    m_params.emplace_back( new PARAM<int>( "copilot.timeout_secs",
+            &m_Copilot.timeout_secs, 180, 10, 1800 ) );
+
+    m_params.emplace_back( new PARAM<bool>( "copilot.allow_edits",
+            &m_Copilot.allow_edits, false ) );
+
+    m_params.emplace_back( new PARAM<bool>( "copilot.web_search",
+            &m_Copilot.web_search, true ) );
+
+    m_params.emplace_back( new PARAM<wxString>( "copilot.freerouting_path",
+            &m_Copilot.freerouting_path, wxS( "" ) ) );
 
     m_params.emplace_back( new PARAM_LAMBDA<nlohmann::json>( "dialog.controls",
             [&]() -> nlohmann::json

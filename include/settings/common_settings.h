@@ -218,6 +218,28 @@ public:
         bool enable_server;
     };
 
+    /// Per-provider connection settings for the Copilot assistant.
+    struct COPILOT_ENDPOINT
+    {
+        wxString base_url;      ///< Empty means the provider default.
+        wxString model;         ///< Empty means the provider default.
+    };
+
+    /// Settings for the Copilot AI assistant.  API keys live in the OS secret store.
+    struct COPILOT
+    {
+        wxString         provider;          ///< anthropic | openai | openai_compatible | ollama
+        COPILOT_ENDPOINT anthropic;
+        COPILOT_ENDPOINT openai;
+        COPILOT_ENDPOINT openai_compatible;
+        COPILOT_ENDPOINT ollama;
+        int              max_tokens;
+        int              timeout_secs;
+        bool             allow_edits;
+        bool             web_search;        ///< Let Claude use Anthropic's web search tool.
+        wxString         freerouting_path;  ///< Freerouting jar or executable (auto if empty).
+    };
+
     COMMON_SETTINGS();
 
     virtual ~COMMON_SETTINGS();
@@ -280,6 +302,7 @@ public:
     PACKAGE_MANAGER     m_PackageManager;
     GIT                 m_Git;
     API                 m_Api;
+    COPILOT             m_Copilot;
 
     /// Global field name templates shared by all project editors.
     TEMPLATES           m_FieldNameTemplates;

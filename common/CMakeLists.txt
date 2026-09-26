@@ -361,6 +361,8 @@ set( KICOMMON_SRCS
     singleton.cpp
     pgm_base.cpp
 
+    copilot/copilot_shared_state.cpp
+
     io/kicad/kicad_io_utils.cpp    # needed by richio
     io/io_base.cpp
     io/io_utils.cpp
@@ -929,6 +931,16 @@ set( COMMON_SRCS
 
     http_lib/http_lib_connection.cpp
     http_lib/http_lib_settings.cpp
+
+    copilot/copilot_common_tools.cpp
+    copilot/copilot_config.cpp
+    copilot/copilot_markdown.cpp
+    copilot/copilot_provider.cpp
+    copilot/copilot_session.cpp
+    copilot/copilot_tool_registry.cpp
+    copilot/copilot_transport.cpp
+    dialogs/dialog_copilot_settings.cpp
+    widgets/copilot_panel.cpp
 
     api/api_text_attributes.cpp
     )

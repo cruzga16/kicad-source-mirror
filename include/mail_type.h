@@ -56,6 +56,8 @@ enum MAIL_T
     MAIL_SCH_NAVIGATE_TO_SHEET, // Navigate to sheet by filename if in hierarchy
     MAIL_SCH_SHEET_CHANGED,     // Schematic editor current sheet changed
     MAIL_CALC_SHOW,             // Show the PCB calculator window
+    MAIL_COPILOT,               // Copilot tool request/reply (JSON payload, see
+                                // COPILOT_REGISTRY_TOOLBOX::HandleMail)
 };
 
 /**
