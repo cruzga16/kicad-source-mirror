@@ -235,6 +235,13 @@ TOOL_ACTION KICAD_MANAGER_ACTIONS::restoreLocalHistory( TOOL_ACTION_ARGS()
         .Tooltip( _( "Restore project files from local history" ) )
         .Icon( BITMAPS::restore_from_file ) );
 
+TOOL_ACTION KICAD_MANAGER_ACTIONS::showCopilot( TOOL_ACTION_ARGS()
+        .Name( "kicad.Control.showCopilot" )
+        .Scope( AS_GLOBAL )
+        .FriendlyName( _( "Copilot" ) )
+        .Tooltip( _( "Show or hide the Copilot AI assistant" ) )
+        .Icon( BITMAPS::module_wizard ) );
+
 TOOL_ACTION KICAD_MANAGER_ACTIONS::showLocalHistory( TOOL_ACTION_ARGS()
         .Name( "kicad.Control.showLocalHistory" )
         .Scope( AS_GLOBAL )

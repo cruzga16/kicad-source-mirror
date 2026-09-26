@@ -38,6 +38,7 @@ set( KICAD_SRCS
     jobs_runner.cpp
     import_proj.cpp
     import_project.cpp
+    copilot/kicad_copilot_toolbox.cpp
     kicad_manager_frame.cpp
     local_history_pane.cpp
     menubar.cpp

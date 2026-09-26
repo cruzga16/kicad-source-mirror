@@ -39,10 +39,12 @@ const nlohmann::json PCM_DEFAULT_REPOSITORIES = nlohmann::json::array( {
 
 KICAD_SETTINGS::KICAD_SETTINGS() :
         APP_SETTINGS_BASE( "kicad", kicadSchemaVersion ), m_LeftWinWidth( 200 ),
-        m_ShowHistoryPanel( false )
+        m_ShowHistoryPanel( false ),
+        m_ShowCopilotPanel( true )
 {
     m_params.emplace_back( new PARAM<int>( "appearance.left_frame_width", &m_LeftWinWidth, 200 ) );
     m_params.emplace_back( new PARAM<bool>( "aui.show_history_panel", &m_ShowHistoryPanel, false ) );
+    m_params.emplace_back( new PARAM<bool>( "aui.show_copilot_panel", &m_ShowCopilotPanel, true ) );
 
     m_params.emplace_back( new PARAM_LIST<wxString>( "system.open_projects", &m_OpenProjects, {} ) );
 

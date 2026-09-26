@@ -50,6 +50,7 @@ public:
 
     int m_LeftWinWidth;
     bool m_ShowHistoryPanel;
+    bool m_ShowCopilotPanel;
 
 
     std::vector<wxString> m_OpenProjects;

@@ -32,6 +32,8 @@ class PLUGIN_CONTENT_MANAGER;
 class PROJECT_TREE;
 class PROJECT_TREE_PANE;
 class LOCAL_HISTORY_PANE;
+class COPILOT_PANEL;
+class KICAD_COPILOT_TOOLBOX;
 class UPDATE_MANAGER;
 
 /**
@@ -56,6 +58,10 @@ public:
     void RestoreCommitFromHistory( const wxString& aHash );
     void ToggleLocalHistory();
     bool HistoryPanelShown();
+
+    /// Show/hide the project-level Copilot (AI assistant) pane.
+    void ToggleCopilot();
+    bool CopilotShown();
 
     void OnOpenFileInTextEditor( wxCommandEvent& event );
     void OnEditAdvancedCfg( wxCommandEvent& event );
@@ -261,9 +267,13 @@ private:
     int                   m_leftWinWidth;
     bool                  m_active_project;
     bool                  m_showHistoryPanel;
+    bool                  m_showCopilotPanel = true;
 
     PROJECT_TREE_PANE*    m_projectTreePane;
     LOCAL_HISTORY_PANE*   m_historyPane;
+
+    std::unique_ptr<KICAD_COPILOT_TOOLBOX> m_copilotToolbox;
+    COPILOT_PANEL*                         m_copilotPanel = nullptr;
     wxAuiNotebook*        m_notebook;
     PANEL_KICAD_LAUNCHER* m_launcher;
     int                   m_lastToolbarIconSize;

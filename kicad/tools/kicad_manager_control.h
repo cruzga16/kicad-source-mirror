@@ -55,6 +55,7 @@ public:
     int ExploreProject( const TOOL_EVENT& aEvent );
     int RestoreLocalHistory( const TOOL_EVENT& aEvent );
     int ToggleLocalHistory( const TOOL_EVENT& aEvent );
+    int ToggleCopilot( const TOOL_EVENT& aEvent );
 
     /**
      * @brief Imports a non kicad project from a sch/pcb dropped file.

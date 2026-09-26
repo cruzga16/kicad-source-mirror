@@ -37,6 +37,8 @@
 #include <dialogs/panel_jobset.h>
 #include <dialogs/dialog_edit_cfg.h>
 #include <local_history.h>
+#include <widgets/copilot_panel.h>
+#include <copilot/kicad_copilot_toolbox.h>
 #include <widgets/wx_progress_reporters.h>
 #include <wx/msgdlg.h>
 #include <eda_base_frame.h>
@@ -249,6 +251,25 @@ KICAD_MANAGER_FRAME::KICAD_MANAGER_FRAME( wxWindow* parent, const wxString& titl
     if( m_showHistoryPanel )
         m_auimgr.GetPane( m_historyPane ).Show();
 
+    m_copilotToolbox = std::make_unique<KICAD_COPILOT_TOOLBOX>( this );
+    m_copilotPanel = new COPILOT_PANEL( this, m_copilotToolbox.get() );
+    m_copilotPanel->SetWelcomeText(
+            _( "<b>KiCad Copilot</b><br>"
+               "Describe a board and I will create the project, draw the schematic, lay out and "
+               "route the PCB, check it, and prepare files for the board house. I can also "
+               "review or modify the open project.<br><br>"
+               "Tick <i>Allow edits</i> so I can make changes. Actions that run programs or "
+               "upload files ask for your approval first. I never place orders or pay." ) );
+
+    m_auimgr.AddPane( m_copilotPanel,
+                      EDA_PANE().Name( wxS( "Copilot" ) ).Right().Layer( 1 )
+                                .Caption( _( "Copilot" ) ).PaneBorder( false )
+                                .MinSize( FromDIP( wxSize( 300, 200 ) ) )
+                                .BestSize( FromDIP( wxSize( 420, 560 ) ) )
+                                .FloatingSize( FromDIP( wxSize( 460, 640 ) ) )
+                                .CloseButton( true ).DestroyOnClose( false )
+                                .Show( m_showCopilotPanel ) );
+
     wxSize client_size = GetClientSize();
     m_notebook = new wxAuiNotebook( this, wxID_ANY, wxPoint( client_size.x, client_size.y ),
                                     FromDIP( wxSize( 700, 590 ) ),
@@ -310,6 +331,9 @@ KICAD_MANAGER_FRAME::KICAD_MANAGER_FRAME( wxWindow* parent, const wxString& titl
 
 KICAD_MANAGER_FRAME::~KICAD_MANAGER_FRAME()
 {
+    if( m_copilotPanel )
+        m_copilotPanel->DetachToolbox();
+
     Unbind( wxEVT_CHAR, &TOOL_DISPATCHER::DispatchWxEvent, m_toolDispatcher );
     Unbind( wxEVT_CHAR_HOOK, &TOOL_DISPATCHER::DispatchWxEvent, m_toolDispatcher );
 
@@ -506,6 +530,14 @@ void KICAD_MANAGER_FRAME::setupUIConditions()
 
     manager->SetConditions( KICAD_MANAGER_ACTIONS::showLocalHistory, ACTION_CONDITIONS().Check( historyCond ) );
 
+    auto copilotCond =
+            [this]( const SELECTION& )
+            {
+                return CopilotShown();
+            };
+
+    manager->SetConditions( KICAD_MANAGER_ACTIONS::showCopilot, ACTION_CONDITIONS().Check( copilotCond ) );
+
     // These are just here for text boxes, search boxes, etc. in places such as the standard
     // file dialogs.
     manager->SetConditions( ACTIONS::cut,     ENABLE( SELECTION_CONDITIONS::ShowNever ) );
@@ -687,6 +719,14 @@ void KICAD_MANAGER_FRAME::DoWithAcceptedFiles()
 
 bool KICAD_MANAGER_FRAME::canCloseWindow( wxCloseEvent& aEvent )
 {
+    // The Copilot may be running one of this window's tools (e.g. the autorouter) and pumping
+    // events while it waits; destroying the window now would pull the design out from under it.
+    if( m_copilotToolbox && m_copilotToolbox->IsExecuting() && aEvent.CanVeto() )
+    {
+        wxBell();
+        return false;
+    }
+
     KICAD_SETTINGS* settings = kicadSettings();
     settings->m_OpenProjects = GetSettingsManager()->GetOpenProjects();
 
@@ -1354,6 +1394,7 @@ void KICAD_MANAGER_FRAME::LoadSettings( APP_SETTINGS_BASE* aCfg )
 
     m_leftWinWidth = settings->m_LeftWinWidth;
     m_showHistoryPanel = settings->m_ShowHistoryPanel;
+    m_showCopilotPanel = settings->m_ShowCopilotPanel;
 }
 
 
@@ -1367,6 +1408,7 @@ void KICAD_MANAGER_FRAME::SaveSettings( APP_SETTINGS_BASE* aCfg )
 
     settings->m_LeftWinWidth = m_projectTreePane->GetSize().x;
     settings->m_ShowHistoryPanel = m_historyPane && m_auimgr.GetPane( m_historyPane ).IsShown();
+    settings->m_ShowCopilotPanel = CopilotShown();
 
     if( !m_isClosing )
         settings->m_OpenProjects = GetSettingsManager()->GetOpenProjects();
@@ -1550,6 +1592,23 @@ void KICAD_MANAGER_FRAME::RestoreCommitFromHistory( const wxString& aHash )
     m_projectTreePane->ReCreateTreePrj();
     m_openSavedWindows = true;
     m_historyPane->RefreshHistory( Prj().GetProjectPath() );
+}
+
+
+void KICAD_MANAGER_FRAME::ToggleCopilot()
+{
+    wxAuiPaneInfo& pane = m_auimgr.GetPane( m_copilotPanel );
+    pane.Show( !pane.IsShown() );
+    m_auimgr.Update();
+
+    if( pane.IsShown() )
+        m_copilotPanel->FocusInput();
+}
+
+
+bool KICAD_MANAGER_FRAME::CopilotShown()
+{
+    return m_copilotPanel && m_auimgr.GetPane( m_copilotPanel ).IsShown();
 }
 
 
