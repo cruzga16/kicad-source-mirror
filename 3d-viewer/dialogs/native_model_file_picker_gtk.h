@@ -21,6 +21,9 @@
 #ifndef NATIVE_MODEL_FILE_PICKER_GTK_H
 #define NATIVE_MODEL_FILE_PICKER_GTK_H
 
+// __WXGTK3__ is defined by the wx headers; make sure they are seen before testing it.
+#include <wx/defs.h>
+
 #ifdef __WXGTK3__
 
 #include "native_model_file_picker.h"
