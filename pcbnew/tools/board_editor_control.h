@@ -95,6 +95,7 @@ public:
     int ToggleNetInspector( const TOOL_EVENT& aEvent );
     int ToggleSearch( const TOOL_EVENT& aEvent );
     int ToggleConstraintsPanel( const TOOL_EVENT& aEvent );
+    int ToggleCopilot( const TOOL_EVENT& aEvent );
     int ToggleLibraryTree( const TOOL_EVENT& aEvent );
 
     // Track & via size control

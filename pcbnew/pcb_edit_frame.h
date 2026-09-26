@@ -63,6 +63,8 @@ class DIALOG_BOARD_SETUP;
 class DIALOG_FOOTPRINT_FIELDS_TABLE;
 class PCB_DESIGN_BLOCK_PANE;
 class PANEL_CONSTRAINTS;
+class COPILOT_PANEL;
+class PCB_COPILOT_TOOLBOX;
 class WX_INFOBAR;
 
 class KICAD_API_SERVER;
@@ -131,6 +133,14 @@ public:
 
     /// The dockable geometric-constraint list pane (#2329), or nullptr.
     PANEL_CONSTRAINTS* GetConstraintsPanel() const { return m_constraintsPanel; }
+
+    static const wxString CopilotPaneName() { return wxT( "Copilot" ); }
+
+    /// Show/hide the dockable Copilot (AI assistant) pane.
+    void ToggleCopilotPanel();
+
+    /// The dockable Copilot pane, or nullptr.
+    COPILOT_PANEL* GetCopilotPanel() const { return m_copilotPanel; }
 
     /**
      * Show the Find dialog.
@@ -872,6 +882,9 @@ private:
     PCB_DESIGN_BLOCK_PANE* m_designBlocksPane;
     // Tool Reset() reads this before the ctor creates the panel.
     PANEL_CONSTRAINTS* m_constraintsPanel = nullptr; ///< Dockable geometric-constraint list (#2329).
+
+    std::unique_ptr<PCB_COPILOT_TOOLBOX> m_copilotToolbox;  ///< Board access for the Copilot.
+    COPILOT_PANEL*                       m_copilotPanel = nullptr;
 
     /// Secondary infobar that stacks above the main one; reserved for load-time
     /// notices (currently the WRL -> STEP migration prompt) that must not be

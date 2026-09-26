@@ -278,6 +278,14 @@ TOOL_ACTION PCB_ACTIONS::showConstraintsPanel( TOOL_ACTION_ARGS()
         .Tooltip( _( "Show/hide the geometric constraints panel" ) )
         .Icon( BITMAPS::measurement ) );
 
+TOOL_ACTION PCB_ACTIONS::showCopilot( TOOL_ACTION_ARGS()
+        .Name( "pcbnew.EditorControl.showCopilot" )
+        .Scope( AS_GLOBAL )
+        .FriendlyName( _( "Copilot" ) )
+        .Tooltip( _( "Show/hide the Copilot AI assistant panel" ) )
+        .ToolbarState( TOOLBAR_STATE::TOGGLE )
+        .Icon( BITMAPS::module_wizard ) );
+
 TOOL_ACTION PCB_ACTIONS::toggleAutoConstraints( TOOL_ACTION_ARGS()
         .Name( "pcbnew.ConstraintEditor.toggleAutoConstraints" )
         .Scope( AS_GLOBAL )

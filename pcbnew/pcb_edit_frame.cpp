@@ -145,6 +145,8 @@
 #include <widgets/pcb_design_block_pane.h>
 #include <widgets/pcb_search_pane.h>
 #include <widgets/panel_constraints.h>
+#include <widgets/copilot_panel.h>
+#include <copilot/pcb_copilot_toolbox.h>
 #include <widgets/wx_infobar.h>
 #include <widgets/panel_selection_filter.h>
 #include <widgets/pcb_properties_panel.h>
@@ -316,6 +318,8 @@ PCB_EDIT_FRAME::PCB_EDIT_FRAME( KIWAY* aKiway, wxWindow* aParent ) :
     m_netInspectorPanel = new PCB_NET_INSPECTOR_PANEL( this, this );
     m_designBlocksPane = new PCB_DESIGN_BLOCK_PANE( this, nullptr, m_designBlockHistoryList );
     m_constraintsPanel = new PANEL_CONSTRAINTS( this );
+    m_copilotToolbox = std::make_unique<PCB_COPILOT_TOOLBOX>( this );
+    m_copilotPanel = new COPILOT_PANEL( this, m_copilotToolbox.get() );
 
     m_auimgr.SetManagedWindow( this );
 
@@ -422,6 +426,16 @@ PCB_EDIT_FRAME::PCB_EDIT_FRAME( KIWAY* aKiway, wxWindow* aParent ) :
                       .MinSize( FromDIP( wxSize( 360, 120 ) ) )
                       .BestSize( FromDIP( wxSize( 600, 200 ) ) )
                       .FloatingSize( FromDIP( wxSize( 600, 240 ) ) )
+                      .DestroyOnClose( false )
+                      .CloseButton( true )
+                      .Hide() );
+
+    m_auimgr.AddPane( m_copilotPanel, EDA_PANE().Name( CopilotPaneName() )
+                      .Right().Layer( 5 ).Row( 1 )
+                      .Caption( _( "Copilot" ) ).PaneBorder( false )
+                      .MinSize( FromDIP( wxSize( 260, 200 ) ) )
+                      .BestSize( FromDIP( wxSize( 380, 500 ) ) )
+                      .FloatingSize( FromDIP( wxSize( 420, 600 ) ) )
                       .DestroyOnClose( false )
                       .CloseButton( true )
                       .Hide() );
@@ -774,6 +788,11 @@ PCB_EDIT_FRAME::~PCB_EDIT_FRAME()
     if( GetBoard() )
         Kiway().LocalHistory().UnregisterSaver( GetBoard() );
 
+    // The Copilot pane is destroyed with the other child windows, after our members; make
+    // sure it (and any in-flight request) no longer references the toolbox.
+    if( m_copilotPanel )
+        m_copilotPanel->DetachToolbox();
+
     // PCB_BASE_FRAME's dtor deletes m_pcb; canvas children outlive it.  Drop
     // every cached TEXT_VAR_TRACKER* before the tracker is freed.
     detachTextVarTracker();
@@ -817,6 +836,22 @@ PCB_EDIT_FRAME::~PCB_EDIT_FRAME()
     // delete m_netInspectorPanel;
 
     delete m_exportNetlistAction;
+}
+
+
+void PCB_EDIT_FRAME::ToggleCopilotPanel()
+{
+    wxAuiPaneInfo& pane = m_auimgr.GetPane( CopilotPaneName() );
+
+    if( !pane.IsOk() )
+        return;
+
+    bool show = !pane.IsShown();
+    pane.Show( show );
+    m_auimgr.Update();
+
+    if( show && m_copilotPanel )
+        m_copilotPanel->FocusInput();
 }
 
 
@@ -1252,6 +1287,12 @@ void PCB_EDIT_FRAME::setupUIConditions()
                 return m_auimgr.GetPane( ConstraintsPaneName() ).IsShown();
             };
 
+    auto copilotPaneCond =
+            [this] ( const SELECTION& )
+            {
+                return m_auimgr.GetPane( CopilotPaneName() ).IsShown();
+            };
+
     auto designBlockCond =
             [ this ] (const SELECTION& aSel )
             {
@@ -1314,6 +1355,7 @@ void PCB_EDIT_FRAME::setupUIConditions()
     mgr->SetConditions( PCB_ACTIONS::showNetInspector,     CHECK( netInspectorCond ) );
     mgr->SetConditions( PCB_ACTIONS::showSearch,           CHECK( searchPaneCond ) );
     mgr->SetConditions( PCB_ACTIONS::showConstraintsPanel, CHECK( constraintsPaneCond ) );
+    mgr->SetConditions( PCB_ACTIONS::showCopilot,          CHECK( copilotPaneCond ) );
     mgr->SetConditions( PCB_ACTIONS::showDesignBlockPanel, CHECK( designBlockCond ) );
 
     mgr->SetConditions( PCB_ACTIONS::saveBoardAsDesignBlock,     ENABLE( hasElements ) );
@@ -1569,6 +1611,14 @@ void PCB_EDIT_FRAME::ResolveDRCExclusions( bool aCreateMarkers )
 
 bool PCB_EDIT_FRAME::canCloseWindow( wxCloseEvent& aEvent )
 {
+    // The Copilot may be running one of this window's tools (e.g. the autorouter) and pumping
+    // events while it waits; destroying the window now would pull the design out from under it.
+    if( m_copilotToolbox && m_copilotToolbox->IsExecuting() && aEvent.CanVeto() )
+    {
+        wxBell();
+        return false;
+    }
+
     // Shutdown blocks must be determined and vetoed as early as possible
     if( KIPLATFORM::APP::SupportsShutdownBlockReason() && aEvent.GetId() == wxEVT_QUERY_END_SESSION
                                                        && IsContentModified() )
@@ -2214,6 +2264,10 @@ void PCB_EDIT_FRAME::OnBoardLoaded()
     // Sync the net inspector now we have connectivity calculated
     if( m_netInspectorPanel )
         m_netInspectorPanel->OnBoardChanged();
+
+    // A conversation about the previous board would only confuse the assistant.
+    if( m_copilotPanel )
+        m_copilotPanel->ResetConversation();
 
     // Display the loaded board:
     Zoom_Automatique( false );

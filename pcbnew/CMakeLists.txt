@@ -556,6 +556,8 @@ set( PCBNEW_CLASS_SRCS
     widgets/pcb_design_block_preview_widget.cpp
     widgets/pcb_properties_panel.cpp
     widgets/pcb_search_pane.cpp
+    copilot/pcb_copilot_layout.cpp
+    copilot/pcb_copilot_toolbox.cpp
     widgets/search_handlers.cpp
     widgets/net_inspector_panel.cpp
     widgets/pcb_net_inspector_panel.cpp

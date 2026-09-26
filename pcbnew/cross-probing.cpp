@@ -49,6 +49,7 @@
 #include <gal/painter.h>
 #include <pcb_painter.h>
 #include <pcb_edit_frame.h>
+#include <copilot/pcb_copilot_toolbox.h>
 #include <pcbnew_settings.h>
 #include <render_settings.h>
 #include <richio.h>
@@ -646,6 +647,12 @@ void PCB_EDIT_FRAME::KiwayMailIn( KIWAY_MAIL_EVENT& mail )
 
     switch( mail.Command() )
     {
+    case MAIL_COPILOT:
+        if( m_copilotToolbox )
+            payload = m_copilotToolbox->HandleMail( payload );
+
+        break;
+
     case MAIL_SCH_SHEET_CHANGED:
         SetLastSchematicSheetPath( KIID_PATH( wxString::FromUTF8( payload.c_str() ) ) );
         break;

@@ -1058,6 +1058,13 @@ int BOARD_EDITOR_CONTROL::ToggleConstraintsPanel( const TOOL_EVENT& aEvent )
 }
 
 
+int BOARD_EDITOR_CONTROL::ToggleCopilot( const TOOL_EVENT& aEvent )
+{
+    getEditFrame<PCB_EDIT_FRAME>()->ToggleCopilotPanel();
+    return 0;
+}
+
+
 // Track & via size control
 int BOARD_EDITOR_CONTROL::TrackWidthInc( const TOOL_EVENT& aEvent )
 {
@@ -2441,6 +2448,7 @@ void BOARD_EDITOR_CONTROL::setTransitions()
     Go( &BOARD_EDITOR_CONTROL::ToggleLibraryTree,      PCB_ACTIONS::showDesignBlockPanel.MakeEvent() );
     Go( &BOARD_EDITOR_CONTROL::ToggleSearch,           PCB_ACTIONS::showSearch.MakeEvent() );
     Go( &BOARD_EDITOR_CONTROL::ToggleConstraintsPanel, PCB_ACTIONS::showConstraintsPanel.MakeEvent() );
+    Go( &BOARD_EDITOR_CONTROL::ToggleCopilot,          PCB_ACTIONS::showCopilot.MakeEvent() );
     Go( &BOARD_EDITOR_CONTROL::RepairBoard,            PCB_ACTIONS::repairBoard.MakeEvent() );
     // Line modes: explicit, next, and notification
     Go( &BOARD_EDITOR_CONTROL::ChangeLineMode,        PCB_ACTIONS::lineModeFree.MakeEvent() );
